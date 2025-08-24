@@ -1,4 +1,4 @@
-package com.spectra.spectra_tag_manager;
+package com.spectra;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
