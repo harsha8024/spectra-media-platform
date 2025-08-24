@@ -1,0 +1,36 @@
+
+
+services:
+  # PostgreSQL Database Service
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: spectra_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # RabbitMQ Message Broker Service
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI Port
+  
+
+  tag-manager:
+    build: ./services/spectra-tag-manager
+    container_name: tag-manager
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/spectra_db
+volumes:
+  postgres-data:
