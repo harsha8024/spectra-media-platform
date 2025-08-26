@@ -1,8 +1,9 @@
 package com.spectra.tag;
 
+import com.spectra.tag.dto.CreateImageRequest;
 import com.spectra.tag.dto.ImageMetadataResponse;
 import com.spectra.tag.dto.TagRequest;
-lombok.RequiredArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,19 @@ import java.util.stream.Collectors;
 public class GalleryController {
 
     private final ImageMetadataRepository repository;
+
+    @PostMapping
+    public ImageMetadataResponse createImage(@RequestBody CreateImageRequest request) {
+        ImageMetadata image = ImageMetadata.builder()
+                .userId(request.userId())
+                .originalFilename(request.originalFilename())
+                .storageUrl(request.storageUrl())
+                .thumbnailUrl(request.thumbnailUrl())
+                .tags(new ArrayList<>())
+                .palette(new ArrayList<>())
+                .build();
+        return toResponse(repository.save(image));
+    }
 
     @PostMapping("/{id}/metadata")
     public ResponseEntity<ImageMetadataResponse> addTagsAndPalette(
