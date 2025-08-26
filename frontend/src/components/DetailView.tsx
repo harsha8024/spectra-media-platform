@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { FiPlus } from 'react-icons/fi';
-import { ImageMetadata, TagRequest } from '../types';
+import { ImageMetadata } from '../types';
 import { spectraApi } from '../services/api';
 
 export const DetailView: React.FC = () => {
