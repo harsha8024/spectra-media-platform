@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.spectra</groupId>
 	<artifactId>spectra-tag-manager</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1-SNAPSHOT</version>
 	<name>spectra-tag-manager</name>
 	<description>Spring Boot service for managing image metadata and tags</description>
 	<developers>
