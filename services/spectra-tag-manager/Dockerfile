@@ -13,7 +13,12 @@ RUN mvn package -DskipTests
 # Run stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Copy built jar from build stage
 COPY --from=build /app/target/*.jar app.jar
+
 # Run the application
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
