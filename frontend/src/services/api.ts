@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ImageMetadata, TagRequest } from '../types';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 const USER_ID = 'user-123'; // Hardcoded for now
 
 const api = axios.create({
