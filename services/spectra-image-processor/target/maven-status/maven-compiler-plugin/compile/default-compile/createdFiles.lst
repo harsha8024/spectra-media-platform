@@ -1,0 +1,5 @@
+com\spectra\image_processor\service\ImageProcessingListener.class
+com\spectra\image_processor\SpectraImageProcessorApplication.class
+com\spectra\image_processor\dto\ImageProcessedEvent.class
+com\spectra\image_processor\dto\ImageReceivedEvent.class
+com\spectra\image_processor\config\RabbitConfig.class
