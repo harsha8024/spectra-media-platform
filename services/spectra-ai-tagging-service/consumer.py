@@ -24,12 +24,21 @@ logger.addHandler(logHandler)
 logger.setLevel(logging.INFO)
 
 # Constants
+# RABBITMQ_HOST = 'rabbitmq'
+# EXCHANGE_NAME = 'spectra-exchange'
+# QUEUE_NAME = 'ai-tagging-queue'
+# ROUTING_KEY = 'image.processed'
+# TAG_MANAGER_URL = 'http://spectra-tag-manager:8080'
+# STORAGE_BASE_URL = 'http://some-object-storage-service'  # Replace with actual storage URL
+# MODEL_PATH = 'yolov8n.pt'
+# Constants
 RABBITMQ_HOST = 'rabbitmq'
 EXCHANGE_NAME = 'spectra-exchange'
 QUEUE_NAME = 'ai-tagging-queue'
 ROUTING_KEY = 'image.processed'
 TAG_MANAGER_URL = 'http://spectra-tag-manager:8080'
-STORAGE_BASE_URL = 'http://some-object-storage-service'  # Replace with actual storage URL
+# Use an environment variable for the storage URL.
+STORAGE_BASE_URL = os.getenv('STORAGE_BASE_URL', 'http://minio:9000')
 MODEL_PATH = 'yolov8n.pt'
 
 # Initialize YOLO model
@@ -88,6 +97,36 @@ def analyze_image(image: Image.Image) -> Tuple[List[str], List[str]]:
         logger.error(f"Failed to analyze image: {e}")
         raise
 
+# def process_image(image_id: str, original_location: str) -> None:
+#     """Process an image and update its metadata via the tag manager API."""
+#     try:
+#         # Download the image from storage
+#         storage_url = f"{STORAGE_BASE_URL}/{original_location}"
+#         logger.info(f"Downloading image from {storage_url}")
+#         image = download_image(storage_url)
+
+#         # Analyze the image using YOLO
+#         tags, colors = analyze_image(image)
+#         logger.info(f"Generated tags and colors for image {image_id}", 
+#                    extra={"tags": tags, "colors": colors})
+
+#         # Prepare the request to the tag manager
+#         url = f"{TAG_MANAGER_URL}/api/images/{image_id}/metadata"
+#         payload = {
+#             "tags": tags,
+#             "palette": colors
+#         }
+
+#         # Make the API call
+#         response = requests.post(url, json=payload)
+#         response.raise_for_status()
+
+#         logger.info(f"Successfully updated metadata for image {image_id}")
+
+#     except requests.exceptions.RequestException as e:
+#         logger.error(f"Failed to update metadata for image {image_id}: {str(e)}")
+#     except Exception as e:
+#         logger.error(f"Error processing image {image_id}: {str(e)}")
 def process_image(image_id: str, original_location: str) -> None:
     """Process an image and update its metadata via the tag manager API."""
     try:
@@ -98,24 +137,26 @@ def process_image(image_id: str, original_location: str) -> None:
 
         # Analyze the image using YOLO
         tags, colors = analyze_image(image)
-        logger.info(f"Generated tags and colors for image {image_id}", 
+        logger.info(f"Generated tags and colors for image {image_id}",
                    extra={"tags": tags, "colors": colors})
 
-        # Prepare the request to the tag manager
+        # Prepare the request to the tag manager.
+        # This endpoint was changed to a PUT request on the image resource itself.
         url = f"{TAG_MANAGER_URL}/api/images/{image_id}/metadata"
         payload = {
             "tags": tags,
             "palette": colors
         }
 
-        # Make the API call
-        response = requests.post(url, json=payload)
+        # Make the API call using PUT to update the resource.
+        response = requests.put(url, json=payload)
         response.raise_for_status()
 
         logger.info(f"Successfully updated metadata for image {image_id}")
 
     except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to update metadata for image {image_id}: {str(e)}")
+        # Corrected the log message to be more accurate.
+        logger.error(f"API call failed for image {image_id}: {str(e)}")
     except Exception as e:
         logger.error(f"Error processing image {image_id}: {str(e)}")
 

@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
+# Set an environment variable for the YOLO config directory
+ENV YOLO_CONFIG_DIR=/app/.config
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
