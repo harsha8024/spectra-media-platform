@@ -10,11 +10,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/images")
 @RequiredArgsConstructor
 public class UploadController {
 
@@ -26,34 +27,42 @@ public class UploadController {
             @RequestHeader("X-User-Id") String userId,
             @RequestParam("file") MultipartFile file
     ) {
-        // Generate a unique storage key
-        String uniqueKey = userId + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
-        String thumbnailKey = "thumbnails/" + uniqueKey;
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("File cannot be empty");
+            }
 
-        // Create initial metadata record
-        CreateImageRequest createRequest = new CreateImageRequest(
-            userId,
-            file.getOriginalFilename(),
-            uniqueKey, // simulated storage URL
-            thumbnailKey // simulated thumbnail URL
-        );
+            // Generate a unique storage key
+            String uniqueKey = userId + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+            String thumbnailKey = "thumbnails/" + uniqueKey;
 
-        ImageMetadataResponse metadata = tagManagerClient.createImage(createRequest);
+            // Create initial metadata record
+            CreateImageRequest createRequest = new CreateImageRequest(
+                userId,
+                file.getOriginalFilename(),
+                uniqueKey,
+                thumbnailKey
+            );
 
-        // Create and publish event
-        ImageReceivedEvent event = new ImageReceivedEvent(
-            metadata.id(),
-            userId,
-            uniqueKey
-        );
+            ImageMetadataResponse metadata = tagManagerClient.createImage(createRequest);
 
-        rabbitTemplate.convertAndSend(
-            RabbitConfig.EXCHANGE_NAME,
-            RabbitConfig.ROUTING_KEY,
-            event
-        );
+            // Create and publish event
+            ImageReceivedEvent event = new ImageReceivedEvent(
+                metadata.id(),
+                userId,
+                uniqueKey
+            );
 
-        return ResponseEntity.accepted()
-            .body("Image upload accepted for processing");
-    }
-}
+            rabbitTemplate.convertAndSend(
+                RabbitConfig.EXCHANGE_NAME,
+                RabbitConfig.ROUTING_KEY,
+                event
+            );
+
+            return ResponseEntity.accepted()
+                .body("Image upload accepted for processing");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                .body("Error processing upload: " + e.getMessage());
+        }
+}}

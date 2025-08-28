@@ -38,9 +38,15 @@ services:
       SPRING_DATASOURCE_USERNAME: myuser
       SPRING_DATASOURCE_PASSWORD: mypassword
       SERVER_PORT: 8080
+      WAIT_HOSTS: postgres-db:5432
+      WAIT_HOSTS_TIMEOUT: 300
+      WAIT_SLEEP_INTERVAL: 5
+      WAIT_HOST_CONNECT_TIMEOUT: 30
     ports:
       - "8080:8080"  # Expose for development/testing
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       postgres-db:
         condition: service_healthy
     healthcheck:
@@ -57,6 +63,9 @@ services:
       SERVER_PORT: 8081
       SPRING_RABBITMQ_HOST: rabbitmq
       TAG_MANAGER_URL: http://spectra-tag-manager:8080
+      # Add these configurations for Feign client
+      SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_DEFAULT_CONNECTTIMEOUT: 5000
+      SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_DEFAULT_READTIMEOUT: 5000
     ports:
       - "8081:8081"  # Expose to host for external access
     depends_on:

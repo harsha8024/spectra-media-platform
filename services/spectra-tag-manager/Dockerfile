@@ -20,5 +20,8 @@ RUN apk add --no-cache curl
 # Copy built jar from build stage
 COPY --from=build /app/target/*.jar app.jar
 
+ENV WAIT_VERSION 2.7.2
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/$WAIT_VERSION/wait /wait
+RUN chmod +x /wait
 # Run the application
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
