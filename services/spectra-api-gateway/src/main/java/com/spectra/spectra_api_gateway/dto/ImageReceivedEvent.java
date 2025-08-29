@@ -1,9 +1,13 @@
 package com.spectra.spectra_api_gateway.dto;
 
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record ImageReceivedEvent(
-    UUID imageId,
-    String userId,
-    String storageLocation
-) {}
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ImageReceivedEvent {
+    private String imageId;
+    private String filePath;
+}

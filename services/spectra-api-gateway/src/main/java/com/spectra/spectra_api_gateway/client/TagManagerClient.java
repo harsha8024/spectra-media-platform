@@ -23,15 +23,16 @@ package com.spectra.spectra_api_gateway.client;
 
 import com.spectra.spectra_api_gateway.dto.CreateImageRequest;
 import com.spectra.spectra_api_gateway.dto.ImageMetadataResponse;
-import com.spectra.spectra_api_gateway.dto.UpdateMetadataRequest; // Import the new DTO
+import com.spectra.spectra_api_gateway.dto.UpdateMetadataRequest;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping; // Import PutMapping
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "tag-manager", url = "${tag.manager.url}")
@@ -42,7 +43,9 @@ public interface TagManagerClient {
     @GetMapping("/api/images/{imageId}")
     ImageMetadataResponse getImage(@PathVariable UUID imageId);
 
-    // Add this method to update the metadata
+    @GetMapping("/api/images")
+    List<ImageMetadataResponse> getAllImages();
+
     @PutMapping("/api/images/{imageId}/metadata")
     void updateImageMetadata(@PathVariable UUID imageId, @RequestBody UpdateMetadataRequest request);
 }

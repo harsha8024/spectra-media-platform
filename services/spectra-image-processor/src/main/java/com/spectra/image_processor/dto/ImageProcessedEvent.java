@@ -1,9 +1,14 @@
 package com.spectra.image_processor.dto;
 
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record ImageProcessedEvent(
-    UUID imageId,
-    String originalLocation,
-    String thumbnailLocation
-) {}
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ImageProcessedEvent {
+    private String imageId;
+    private String originalLocation;
+    private String thumbnailLocation;
+}

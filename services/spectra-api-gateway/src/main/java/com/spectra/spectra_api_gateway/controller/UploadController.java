@@ -14,6 +14,7 @@ import com.spectra.spectra_api_gateway.config.RabbitConfig;
 import com.spectra.spectra_api_gateway.dto.CreateImageRequest;
 import com.spectra.spectra_api_gateway.dto.ImageMetadataResponse;
 import com.spectra.spectra_api_gateway.dto.ImageReceivedEvent;
+import com.spectra.spectra_api_gateway.dto.UpdateMetadataRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -79,9 +81,9 @@ public class UploadController {
 
             // Publish event
             ImageReceivedEvent event = new ImageReceivedEvent(
-                    metadata.id(),
-                    userId,
-                    uniqueKey);
+                    metadata.id().toString(),
+                    uniqueKey // This is the filePath that the image processor needs
+            );
 
             rabbitTemplate.convertAndSend(
                     RabbitConfig.EXCHANGE_NAME,
@@ -105,12 +107,49 @@ public class UploadController {
             Path path = Paths.get(storagePath, metadata.storageUrl());
             Resource resource = new FileSystemResource(path);
 
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            String filename = path.getFileName().toString().toLowerCase();
+            MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+            if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+                mediaType = MediaType.IMAGE_JPEG;
+            } else if (filename.endsWith(".png")) {
+                mediaType = MediaType.IMAGE_PNG;
+            } else if (filename.endsWith(".gif")) {
+                mediaType = MediaType.IMAGE_GIF;
+            }
+
             return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG)
+                    .contentType(mediaType)
                     .body(resource);
         } catch (Exception e) {
             log.error("Error fetching image", e);
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping
+    public List<ImageMetadataResponse> getAllImages() {
+        try {
+            return tagManagerClient.getAllImages();
+        } catch (Exception e) {
+            log.error("Error fetching all images", e);
+            return List.of();
+        }
+    }
+
+    @PutMapping("/{imageId}/metadata")
+    public ResponseEntity<Void> updateImageMetadata(
+            @PathVariable UUID imageId,
+            @RequestBody UpdateMetadataRequest request) {
+        try {
+            tagManagerClient.updateImageMetadata(imageId, request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error updating image metadata for imageId: {}", imageId, e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
