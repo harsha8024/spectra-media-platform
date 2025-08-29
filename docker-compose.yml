@@ -19,16 +19,20 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_CONFIG_FILE: /etc/rabbitmq/rabbitmq.conf
+      # Add this line to fix the cookie permission issue
+      RABBITMQ_ERLANG_COOKIE: 'a-very-long-and-secure-random-string-for-cookie'
     ports:
       - "5672:5672"  # AMQP protocol
       - "15672:15672"  # Management interface
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
-      interval: 5s
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
   spectra-tag-manager:
     build:
@@ -97,9 +101,10 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
       TAG_MANAGER_URL: http://spectra-tag-manager:8080
-      STORAGE_BASE_URL: http://some-object-storage-service
+      STORAGE_BASE_URL: http://spectra-api-gateway:8081/api/images/content
     volumes:
       - ml_models:/app/models  # Persist downloaded ML models
+      - image_storage:/tmp/spectra/images # Mount shared image volume
     deploy:
       resources:
         reservations:
@@ -130,6 +135,7 @@ services:
       - spectra-api-gateway
 volumes:
   postgres_data: {}  # Persist PostgreSQL data
+  rabbitmq_data: {} # Persist RabbitMQ data
   ml_models: {}     # Persist ML models
   image_storage: {}  # Shared volume for images
 
